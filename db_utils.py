@@ -1,13 +1,23 @@
+"""
+Functions for connecting and persisting data to the Sqllite DB.
+"""
+
 import sqlite3
 
 
 def get_db_connection():
+    """
+    Returns a connection object to the SQLite database `url_store.db`
+    """
     conn = sqlite3.connect("url_store.db")
     conn.row_factory = sqlite3.Row
     return conn
 
 
 def url_exists(url):
+    """
+    Checks if a URL already has a shortcode stored in the DB.
+    """
     conn = get_db_connection()
     cursor = conn.cursor()
     cursor.execute(
@@ -16,14 +26,15 @@ def url_exists(url):
     row = cursor.fetchone()
 
     if row:
-        # Access the row data using the column names or indexes
         original_url, shortcode = row
         return shortcode
-    else:
-        return None
+    return None
 
 
 def insert_shortcode(url, shortcode):
+    """
+    Inserts a URL-shortcode combination as a new row in the DB.
+    """
     with get_db_connection() as conn:
         conn.execute(
             "INSERT INTO urls (original_url, shortcode) VALUES (?,?)", (url, shortcode)
@@ -32,6 +43,9 @@ def insert_shortcode(url, shortcode):
 
 
 def get_url_shortcode(shortcode):
+    """
+    Gets shortcode for a URL.
+    """
     with get_db_connection() as conn:
         cursor = conn.cursor()
         cursor.execute(
@@ -43,12 +57,14 @@ def get_url_shortcode(shortcode):
             # Access the row data using the column names or indexes
             original_url, shortcode = row
             return original_url
-        else:
-            print("No row found with that shortcode")
-            return None
+
+        return None
 
 
 def increment_clicks(shortcode):
+    """
+    Increments redirect count and last redirect TS for a shortcode.
+    """
     with get_db_connection() as conn:
         conn.execute(
             "UPDATE urls SET clicks = clicks + 1, \
@@ -61,6 +77,9 @@ def increment_clicks(shortcode):
 
 
 def get_stats(shortcode):
+    """
+    Gets stats for a shortcode.
+    """
     with get_db_connection() as conn:
         cursor = conn.cursor()
         cursor.execute(
@@ -77,5 +96,4 @@ def get_stats(shortcode):
                 "lastRedirect": last_redirect,
                 "redirectCount": clicks,
             }
-        else:
-            return None
+        return None

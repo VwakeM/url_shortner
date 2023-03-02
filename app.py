@@ -1,3 +1,7 @@
+"""
+A Flask URL shortner application.
+"""
+
 import hashlib
 import base64
 from flask import Flask, request, jsonify
@@ -13,7 +17,10 @@ from db_utils import (
 app = Flask(__name__)
 
 
-def generate_hashcode(url):
+def generate_shortcode(url):
+    """
+    Generate a shortcode for a given URL using hashing.
+    """
     # Generate a hash object using the SHA256 algorithm
     hash_object = hashlib.sha256(url.encode())
 
@@ -25,13 +32,13 @@ def generate_hashcode(url):
     return hashcode
 
 
-@app.route("/")
-def hello():
-    return "hello!"
-
-
 @app.route("/url/shorten", methods=["POST"])
 def shorten_url():
+    """
+    Generates a shortcode for a given URL if no shortcode is provided.
+    The shortcode is saved in the sqllite DB.
+    If along with the URL, the user provides a valid shortcode, it is saved as is.
+    """
     request_data = request.get_json()
     url = request_data.get("url")
     shortcode = request_data.get("shortcode")
@@ -66,7 +73,7 @@ def shorten_url():
                 status_code = 412
                 status = {"error": "The provided shortcode is invalid"}
         else:
-            shortcode = generate_hashcode(url)
+            shortcode = generate_shortcode(url)
             insert_shortcode(url, shortcode)
             status = {"message": "New shortcode created!", "shortcode": shortcode}
         print(status)
@@ -76,6 +83,9 @@ def shorten_url():
 
 @app.route("/url/get/<shortcode>")
 def get_url(shortcode):
+    """
+    Returns the original URL for a saved URL-shortcode combination.
+    """
     url = get_url_shortcode(shortcode)
     status_code = 302
 
@@ -90,6 +100,10 @@ def get_url(shortcode):
 
 @app.route("/url/<shortcode>/stats")
 def get_shortcode_stats(shortcode):
+    """
+    Returns the stats (timestamps and redirect count) for a
+    valid URL-shortcode combination using the shortcode.
+    """
     stats = get_stats(shortcode)
     status_code = 200
     if not stats:
