@@ -1,13 +1,11 @@
 # URL Shortener
-This project provides a URL shortening service. The user can enter a long URL and receive a shorter, more manageable URL to use. Users can also provide their own shortcode. All shortcodes are of exactly 6 characters, and can be alphanumeric with underscores. 
+This project provides a Python Flask based URL shortening service. The user can enter a long URL and receive a shorter, more manageable shortcode. Users can also provide their own shortcode. All shortcodes are of exactly 6 characters, and can be alphanumeric with underscores. 
 
-The service saves the URL shortcode mappings created. It also saves a count and create/access timestamp of URL shortcodes. This data can be accessed using the service endpoints. 
+The url shortner service saves the original URL and shortcode mappings in an Sqllite database. It also saves a count and timestamps of when a shortcode was created and last accessed. This data can be accessed using the service endpoints. 
 
 # Prerequisites
 
-To run the code, you will need:
-Python 3+
-Python package installer pip
+To run the code, you will need Python 3+ and Python package installer pip. 
 
 # Installation
 1. Unzip the folder and navigate to it.
