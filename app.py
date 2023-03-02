@@ -7,6 +7,7 @@ import base64
 from flask import Flask, request, jsonify
 from db_utils import (
     url_exists,
+    shortcode_exists,
     insert_shortcode,
     get_url_shortcode,
     increment_clicks,
@@ -42,41 +43,45 @@ def shorten_url():
     request_data = request.get_json()
     url = request_data.get("url")
     shortcode = request_data.get("shortcode")
-    existing_code = url_exists(url)
     status_code = 201
+    url_existing_shortcode = url_exists(url)
+    existing_shortcode = shortcode_exists(shortcode)
 
     if not url:
         status_code = 400
         status = {"error": "URL not present"}
 
-    else:
-        existing_code = url_exists(url)
-        if existing_code:
-            status_code = 200
+    elif url_existing_shortcode:
+        status_code = 400
+        status = {
+            "error": "URL already has a shortcode.",
+            "shortcode": url_existing_shortcode,
+        }
+    elif shortcode:
+        if existing_shortcode:
+            status_code = 409
             status = {
-                "message": "URL has an existing shortcode.",
-                "shortcode": existing_code,
+                "message": "Shortcode already in use.",
+                "shortcode": existing_shortcode,
             }
 
-        elif shortcode:
-            if (
-                shortcode is not None
-                and len(shortcode) == 6
-                and (all(c.isalnum() or c == "_" for c in shortcode))
-            ):
-                insert_shortcode(url, shortcode)
-                status = {
-                    "message": f"URL inserted with the user provided shortcode: {shortcode}",
-                    "shortcode": shortcode,
-                }
-            else:
-                status_code = 412
-                status = {"error": "The provided shortcode is invalid"}
-        else:
-            shortcode = generate_shortcode(url)
+        elif (
+            shortcode is not None
+            and len(shortcode) == 6
+            and (all(c.isalnum() or c == "_" for c in shortcode))
+        ):
             insert_shortcode(url, shortcode)
-            status = {"message": "New shortcode created!", "shortcode": shortcode}
-        print(status)
+            status = {
+                "message": f"URL inserted with the user provided shortcode: {shortcode}",
+                "shortcode": shortcode,
+            }
+        else:
+            status_code = 412
+            status = {"error": "The provided shortcode is invalid"}
+    else:
+        shortcode = generate_shortcode(url)
+        insert_shortcode(url, shortcode)
+        status = {"message": "New shortcode created!", "shortcode": shortcode}
 
     return jsonify(status), status_code
 

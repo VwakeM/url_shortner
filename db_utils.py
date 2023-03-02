@@ -30,6 +30,22 @@ def url_exists(url):
         return shortcode
     return None
 
+def shortcode_exists(shortcode):
+    """
+    Checks if a shortcode already exists.
+    """
+    conn = get_db_connection()
+    cursor = conn.cursor()
+    cursor.execute(
+        "SELECT original_url, shortcode FROM urls WHERE shortcode = ?", (shortcode,)
+    )
+    row = cursor.fetchone()
+
+    if row:
+        original_url, shortcode = row
+        return shortcode
+    return None
+
 
 def insert_shortcode(url, shortcode):
     """
